@@ -38,13 +38,13 @@ const firebaseConfig = {
 const USERS = [
   {
     username: 'daddy',
-    email: 'REPLACE_WITH_DADDY_FIREBASE_EMAIL',
+    email: 'daddy@gmail.com',
     display: 'Daddy'
   },
 
   {
     username: 'oghenero',
-    email: 'REPLACE_WITH_OGHENERO_FIREBASE_EMAIL',
+    email: 'oghenero@gmail.com',
     display: 'Oghenero'
   }
 ];
