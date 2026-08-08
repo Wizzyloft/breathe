@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Breathe — Smart Expense Accountability Tracker">
+<title>Breathe – Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+  <div class="app-shell" id="shell">
+
+    <!-- ══════════════════ SPLASH SCREEN ══════════════════ -->
+    <div class="screen active" id="screen-splash">
+      <div class="splash-bg"></div>
+      <div class="splash-content">
+        <div class="splash-orb-wrap">
+          <div class="splash-ring r3"></div>
+          <div class="splash-ring r2"></div>
+          <div class="splash-ring r1"></div>
+          <div class="splash-core">
+            <span class="splash-icon">🌬️</span>
+          </div>
+        </div>
+        <div class="splash-text">
+          <h1 class="splash-title">Breathe</h1>
+          <p class="splash-tagline">Smart Expense Accountability</p>
+        </div>
+        <div class="splash-loader-wrap">
+          <div class="splash-loader-bar" id="splash-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
+    <div class="screen" id="screen-login"></div>
+
+    <!-- ══════════════════ MAIN MENU ══════════════════ -->
+    <div class="screen" id="screen-main"></div>
+
+    <!-- ══════════════════ ENTER RECORD ══════════════════ -->
+    <div class="screen" id="screen-enter"></div>
+
+    <!-- ══════════════════ CHECK RECORDS ══════════════════ -->
+    <div class="screen" id="screen-check"></div>
+
+    <!-- ══════════════════ RECEIPT VIEWER ══════════════════ -->
+    <div class="screen" id="screen-receipt"></div>
+
+  </div><!-- /app-shell -->
+</div><!-- /app -->
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
