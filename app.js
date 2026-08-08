@@ -334,31 +334,95 @@ function renderLogin() {
   `;
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
-  const user = document.getElementById('l-user').value;
-  const pass = document.getElementById('l-pass').value;
-  const err  = document.getElementById('l-err');
-  const btn  = document.getElementById('l-btn');
+
+  const username =
+    document.getElementById('l-user').value;
+
+  const password =
+    document.getElementById('l-pass').value;
+
+  const err =
+    document.getElementById('l-err');
+
+  const btn =
+    document.getElementById('l-btn');
 
   err.style.display = 'none';
-  btn.innerHTML = '<div class="spinner"></div>';
-  btn.disabled  = true;
 
-  setTimeout(() => {
-    const found = doLogin(user, pass);
-    if (found) {
-      S.user = found;
-      Store.set(SK.session, { username: found.username });
-      renderMain();
-      nav('main');
-      toast(`Welcome back, ${found.display}! 👋`, 'ok');
-    } else {
-      err.style.display = 'block';
-      btn.innerHTML = 'Sign In &rarr;';
-      btn.disabled  = false;
+  btn.innerHTML =
+    '<div class="spinner"></div>';
+
+  btn.disabled = true;
+
+  try {
+
+    const account =
+      getUserByUsername(username);
+
+    if (!account) {
+      throw new Error('Invalid username or password');
     }
-  }, 600);
+
+    // Firebase handles the password verification.
+    const firebaseUser =
+      await window.BreatheFirebase.login(
+        account.email,
+        password
+      );
+
+    // Make sure the Firebase user is actually
+    // part of the Family Accountability session.
+    const session =
+      await window.BreatheFirebase.getFamilySession();
+
+    // Store the application user information.
+    S.user = {
+      username: account.username,
+      email: account.email,
+      display: account.display,
+      uid: firebaseUser.uid
+    };
+
+    // We no longer need to store the password
+    // or authentication token ourselves.
+    Store.set(SK.session, {
+      username: account.username,
+      uid: firebaseUser.uid
+    });
+
+    console.log(
+      'Logged into Family Accountability:',
+      session.name
+    );
+
+    renderMain();
+
+    nav('main');
+
+    toast(
+      `Welcome back, ${account.display}! 👋`,
+      'ok'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'Login error:',
+      error
+    );
+
+    err.textContent =
+      '❌ Invalid username or password';
+
+    err.style.display = 'block';
+
+    btn.innerHTML =
+      'Sign In &rarr;';
+
+    btn.disabled = false;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
