@@ -8,8 +8,16 @@
 //  CONSTANTS
 // ══════════════════════════════════════════════════════════
 const USERS = [
-  { username: 'daddy',    password: '12345678', display: 'Daddy'    },
-  { username: 'oghenero', password: '87654321', display: 'Oghenero' },
+  {
+    username: 'daddy',
+    email: 'daddy@gmail.com',
+    display: 'Daddy'
+  },
+  {
+    username: 'oghenero',
+    email: 'oghenero@gmail.com',
+    display: 'Oghenero'
+  }
 ];
 
 const SK = {
