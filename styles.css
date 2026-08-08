@@ -145,19 +145,9 @@ input, select, textarea { font-family:inherit; }
 }
 
 .app-shell {
-  width: 100%; max-width: 430px; height: 100%;
+  width: 100%; height: 100%;
   position: relative; overflow: hidden;
   background: var(--bg);
-}
-
-@media(min-width:430px) {
-  .app-shell {
-    border-radius: 40px;
-    height: calc(100vh - 40px);
-    box-shadow: 0 0 0 1px rgba(139,92,246,0.14),
-                0 0 0 6px rgba(139,92,246,0.03),
-                0 60px 120px rgba(0,0,0,.55);
-  }
 }
 
 /* ── SCREEN SYSTEM ── */
@@ -318,6 +308,34 @@ input, select, textarea { font-family:inherit; }
 ══════════════════════════════════════ */
 .fg { display: flex; flex-direction: column; gap: 8px; }
 .fg + .fg { margin-top: 16px; }
+
+@media (min-width: 768px) {
+  /* Grid layout for forms on tablet/desktop */
+  form, .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  form .fg, .form-grid .fg {
+    margin-top: 0 !important;
+  }
+  form .fg:has(textarea),
+  form .fg:has(button[type="submit"]),
+  form .fg:has(.receipt-drop),
+  form > button {
+    grid-column: 1 / -1;
+  }
+  .login-form {
+    display: flex; /* keep login form flex but add some constraints if needed, or grid */
+  }
+  .login-wrap .login-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
 
 .label {
   font-size: 11px; font-weight: 700;
