@@ -130,10 +130,10 @@ function goBack() {
 // ══════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════
-function doLogin(username, password) {
+function getUserByUsername(username) {
   return USERS.find(u =>
-    u.username.toLowerCase() === username.toLowerCase().trim() &&
-    u.password === password
+    u.username.toLowerCase() ===
+    username.toLowerCase().trim()
   ) || null;
 }
 
