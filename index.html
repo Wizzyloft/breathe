@@ -13,54 +13,6 @@
 
 <script type="module">
 
-  import { initializeApp } from
-    "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-
-  import {
-    getAuth,
-    onAuthStateChanged
-  } from
-    "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    collection,
-    addDoc,
-    getDocs,
-    onSnapshot,
-    serverTimestamp
-  } from
-    "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCklRlBFp8sE3AY3LkF0B4wao8nsH8JjLw",
-  authDomain: "breatheexpense.firebaseapp.com",
-  projectId: "breatheexpense",
-  storageBucket: "breatheexpense.firebasestorage.app",
-  messagingSenderId: "693685677194",
-  appId: "1:693685677194:web:5bb6b76520594a4885d173",
-  measurementId: "G-7EK34HXS7M"
-};
-
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-
-
-  // Firebase Authentication
-  const auth = getAuth(app);
-
-
-  // Cloud Firestore
-  const db = getFirestore(app);
-
-
-  console.log("Breathe Firebase initialized");
-
 </script>
   
 <body>
@@ -112,5 +64,352 @@ const firebaseConfig = {
 <div class="toast-container" id="toast-container"></div>
 
 <script src="app.js"></script>
+<script type="module">
+
+  // ==========================================
+  // BREATHE — FIREBASE CONNECTION
+  // ==========================================
+
+  import { initializeApp } from
+    "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+  } from
+    "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    addDoc,
+    onSnapshot,
+    serverTimestamp
+  } from
+    "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+
+  // ==========================================
+  // YOUR FIREBASE PROJECT
+  // ==========================================
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCklRlBFp8sE3AY3LkF0B4wao8nsH8JjLw",
+    authDomain: "breatheexpense.firebaseapp.com",
+    projectId: "breatheexpense",
+    storageBucket: "breatheexpense.firebasestorage.app",
+    messagingSenderId: "693685677194",
+    appId: "1:693685677194:web:5bb6b76520594a4885d173",
+    measurementId: "G-7EK34HXS7M"
+  };
+
+
+  // ==========================================
+  // INITIALIZE FIREBASE
+  // ==========================================
+
+  const firebaseApp = initializeApp(firebaseConfig);
+
+  const auth = getAuth(firebaseApp);
+
+  const db = getFirestore(firebaseApp);
+
+
+  // ==========================================
+  // BREATHE SHARED SESSION
+  // ==========================================
+
+  const SESSION_ID = "family";
+
+
+  // ==========================================
+  // GET THE FAMILY SESSION
+  // ==========================================
+
+  async function getFamilySession() {
+
+    const sessionRef = doc(
+      db,
+      "sessions",
+      SESSION_ID
+    );
+
+    const sessionSnap = await getDoc(sessionRef);
+
+    if (!sessionSnap.exists()) {
+      throw new Error("Family accountability session does not exist.");
+    }
+
+    const sessionData = sessionSnap.data();
+
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error("No authenticated user.");
+    }
+
+    // Make sure the logged-in user belongs
+    // to this shared accountability session.
+
+    if (!sessionData.members.includes(currentUser.uid)) {
+
+      throw new Error(
+        "You are not a member of this accountability session."
+      );
+
+    }
+
+    return sessionData;
+  }
+
+
+  // ==========================================
+  // LOGIN
+  // ==========================================
+
+  async function breatheLogin(email, password) {
+
+    try {
+
+      const credential =
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+      console.log(
+        "Breathe login successful:",
+        credential.user.email
+      );
+
+      return credential.user;
+
+    } catch (error) {
+
+      console.error(
+        "Breathe login failed:",
+        error
+      );
+
+      throw error;
+    }
+  }
+
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  async function breatheLogout() {
+
+    await signOut(auth);
+
+    console.log("Breathe logout successful.");
+  }
+
+
+  // ==========================================
+  // ADD EXPENSE RECORD
+  // ==========================================
+
+  async function addExpenseRecord({
+    description,
+    amount,
+    category = "",
+    notes = ""
+  }) {
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("You must be logged in.");
+    }
+
+    // Verify that this user belongs
+    // to the shared family session.
+
+    await getFamilySession();
+
+    const recordsRef = collection(
+      db,
+      "sessions",
+      SESSION_ID,
+      "records"
+    );
+
+    const newRecord = await addDoc(
+      recordsRef,
+      {
+        description: description,
+        amount: Number(amount),
+        category: category,
+        notes: notes,
+
+        // Store the actual Firebase UID
+        // of whoever entered the record.
+        enteredBy: user.uid,
+
+        // Useful for displaying the person's
+        // email in the accountability history.
+        enteredByEmail: user.email,
+
+        createdAt: serverTimestamp()
+      }
+    );
+
+    console.log(
+      "Expense created:",
+      newRecord.id
+    );
+
+    return newRecord.id;
+  }
+
+
+  // ==========================================
+  // LISTEN TO SHARED EXPENSE RECORDS
+  // ==========================================
+
+  async function listenToExpenses(callback) {
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("You must be logged in.");
+    }
+
+    // Verify session membership.
+
+    await getFamilySession();
+
+    const recordsRef = collection(
+      db,
+      "sessions",
+      SESSION_ID,
+      "records"
+    );
+
+    // onSnapshot means both users can see
+    // changes in real time.
+
+    return onSnapshot(
+      recordsRef,
+      (snapshot) => {
+
+        const records = [];
+
+        snapshot.forEach((document) => {
+
+          records.push({
+            id: document.id,
+            ...document.data()
+          });
+
+        });
+
+        // Newest records first.
+        records.sort((a, b) => {
+
+          const aTime =
+            a.createdAt?.toMillis?.() || 0;
+
+          const bTime =
+            b.createdAt?.toMillis?.() || 0;
+
+          return bTime - aTime;
+
+        });
+
+        callback(records);
+
+      },
+      (error) => {
+
+        console.error(
+          "Could not listen to expenses:",
+          error
+        );
+
+      }
+    );
+  }
+
+
+  // ==========================================
+  // AUTHENTICATION STATE
+  // ==========================================
+
+  onAuthStateChanged(
+    auth,
+    async (user) => {
+
+      if (user) {
+
+        console.log(
+          "Breathe user authenticated:",
+          user.email
+        );
+
+        try {
+
+          const session =
+            await getFamilySession();
+
+          console.log(
+            "Shared accountability session:",
+            session.name
+          );
+
+        } catch (error) {
+
+          console.error(
+            "Session access denied:",
+            error
+          );
+
+        }
+
+      } else {
+
+        console.log(
+          "No Breathe user is currently logged in."
+        );
+
+      }
+
+    }
+  );
+
+
+  // ==========================================
+  // MAKE FUNCTIONS AVAILABLE TO BREATHE APP
+  // ==========================================
+
+  window.BreatheFirebase = {
+
+    auth,
+    db,
+
+    login: breatheLogin,
+    logout: breatheLogout,
+
+    getFamilySession,
+    addExpenseRecord,
+    listenToExpenses
+
+  };
+
+
+  console.log(
+    "🔥 Breathe Firebase is connected."
+  );
+
+</script>
+  
 </body>
 </html>
