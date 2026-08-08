@@ -137,20 +137,71 @@ function getUserByUsername(username) {
   ) || null;
 }
 
-function doLogout() {
-  S.user = null;
-  Store.del(SK.session);
-  S.navStack = ['login'];
-  renderLogin();
-  const screens = ['main','enter','check','receipt'];
-  screens.forEach(s => {
-    const el = document.getElementById('screen-' + s);
-    if (el) el.classList.remove('active','out-left');
-  });
-  const login = document.getElementById('screen-login');
-  login.classList.add('active');
-  S.screen = 'login';
-  toast('Logged out successfully 👋', 'info');
+async function doLogout() {
+
+  try {
+
+    await window.BreatheFirebase.logout();
+
+    S.user = null;
+
+    Store.del(SK.session);
+
+    S.records = [];
+
+    S.navStack = ['login'];
+
+    renderLogin();
+
+    const screens = [
+      'main',
+      'enter',
+      'check',
+      'receipt'
+    ];
+
+    screens.forEach(s => {
+
+      const el =
+        document.getElementById(
+          'screen-' + s
+        );
+
+      if (el) {
+        el.classList.remove(
+          'active',
+          'out-left'
+        );
+      }
+
+    });
+
+    const login =
+      document.getElementById(
+        'screen-login'
+      );
+
+    login.classList.add('active');
+
+    S.screen = 'login';
+
+    toast(
+      'Logged out successfully 👋',
+      'info'
+    );
+
+  } catch (error) {
+
+    console.error(
+      'Logout error:',
+      error
+    );
+
+    toast(
+      'Could not log out. Please try again.',
+      'err'
+    );
+  }
 }
 
 // ══════════════════════════════════════════════════════════
