@@ -209,19 +209,75 @@ async function doLogout() {
 // ══════════════════════════════════════════════════════════
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,9); }
 
-function saveRecord(data) {
+async function saveRecord(data) {
+
+  if (!S.user) {
+    throw new Error(
+      'You must be logged in to save a record.'
+    );
+  }
+
   const rec = {
-    id:       uid(),
-    username: S.user.username,
-    name:     data.name.trim(),
-    amount:   parseFloat(data.amount) || 0,
-    description: (data.description || '').trim(),
-    receiptImage: data.receiptImage || null,
-    date:     data.date || todayStr(),
-    createdAt: new Date().toISOString(),
+
+    name: data.name.trim(),
+
+    amount:
+      parseFloat(data.amount) || 0,
+
+    description:
+      (data.description || '').trim(),
+
+    receiptImage:
+      data.receiptImage || null,
+
+    date:
+      data.date || todayStr(),
+
+    enteredBy:
+      S.user.uid,
+
+    enteredByUsername:
+      S.user.username,
+
+    enteredByName:
+      S.user.display,
+
+    createdAt:
+      new Date().toISOString()
   };
-  S.records.unshift(rec);
-  Store.set(SK.records, S.records);
+
+  const id =
+    await window.BreatheFirebase.addExpenseRecord({
+
+      description: rec.description,
+
+      amount: rec.amount,
+
+      category: rec.name,
+
+      notes: JSON.stringify({
+
+        name: rec.name,
+
+        date: rec.date,
+
+        receiptImage: rec.receiptImage,
+
+        enteredBy: rec.enteredBy,
+
+        enteredByUsername:
+          rec.enteredByUsername,
+
+        enteredByName:
+          rec.enteredByName,
+
+        createdAt:
+          rec.createdAt
+      })
+    });
+
+  rec.id = id;
+
   return rec;
 }
 
